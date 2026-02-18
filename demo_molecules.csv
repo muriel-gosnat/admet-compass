@@ -1,0 +1,16 @@
+name,smiles,category,peak_sales_usd,description
+Aspirin,CC(=O)Oc1ccccc1C(=O)O,Pain Relief,2.6B,Anti-inflammatory and pain reliever
+Ibuprofen,CC(C)Cc1ccc(cc1)C(C)C(=O)O,Pain Relief,1.8B,NSAID for pain and inflammation
+Atorvastatin,CC(C)c1c(C(=O)Nc2ccccc2)c(-c2ccccc2)c(-c2ccc(F)cc2)n1CCC(O)CC(O)CC(=O)O,Cardiovascular,13B,Lipitor - cholesterol lowering statin
+Metformin,CN(C)C(=N)NC(=N)N,Diabetes,2.5B,First-line treatment for type 2 diabetes
+Sildenafil,CCCC1=NN(C2=C1N=C(NC2=O)C3=C(C=CC(=C3)S(=O)(=O)N4CCN(CC4)C)OCC)C,Erectile Dysfunction,1.9B,Viagra - PDE5 inhibitor
+Penicillin,CC1(C)SC2C(NC(=O)Cc3ccccc3)C(=O)N2C1C(=O)O,Antibiotic,0.5B,First widely used antibiotic
+Amoxicillin,CC1(C)SC2C(NC(=O)C(N)c3ccc(O)cc3)C(=O)N2C1C(=O)O,Antibiotic,2.1B,Broad-spectrum beta-lactam antibiotic
+Ciprofloxacin,C1CC1N2C=C(C(=O)C3=CC(=C(C=C32)N4CCNCC4)F)C(=O)O,Antibiotic,1.6B,Fluoroquinolone antibiotic
+Imatinib,CN1CCN(CC1)Cc2ccc(cc2)C(=O)Nc3ccc(C)c(Nc4nccc(n4)c5cccnc5)c3,Oncology,4.7B,Gleevec - tyrosine kinase inhibitor for CML
+Gefitinib,COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1OCCCN4CCOCC4,Oncology,1.2B,Iressa - EGFR inhibitor for lung cancer
+Erlotinib,C#Cc1cccc(Oc2cccc(NC(=O)c3ccccc3)c2)c1OCCOC,Oncology,1.8B,Tarceva - EGFR inhibitor
+Warfarin,CC(=O)CC(c1ccccc1)c2c(O)c3ccccc3oc2=O,Cardiovascular,0.8B,Anticoagulant for blood clot prevention
+Clopidogrel,COC(=O)C(c1ccccc1Cl)N2CCc3sccc3C2,Cardiovascular,9.4B,Plavix - antiplatelet agent
+Losartan,CCCCc1nc(Cl)c(CO)n1Cc2ccc(cc2)c3ccccc3C4=NNN=N4,Cardiovascular,2.8B,Angiotensin II receptor blocker
+Amlodipine,CCOC(=O)C1=C(COCCN)NC(C)=C(C(=O)OC)C1c2ccccc2Cl,Cardiovascular,3.5B,Calcium channel blocker for hypertension
