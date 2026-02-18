@@ -21,6 +21,7 @@ from utils.visualizations import (
     create_comparison_chart,
     create_lipinski_violations_chart
 )
+from scientific_intelligence import display_scientific_intelligence
 
 # Page configuration
 st.set_page_config(
@@ -138,6 +139,7 @@ def main():
             - Lipinski Rule of Five compliance
             - Interactive visualizations
             - Benchmarking against blockbusters
+            - Scientific Intelligence (PubMed, ClinicalTrials, Patents)
             
             **Developed by:** Muriel  
             **Context:** Biolevate R&D Portfolio  
@@ -160,138 +162,150 @@ def main():
         if admet_profile is None:
             st.error("❌ Error calculating ADMET properties.")
             return
-        
-        # Layout: 2 columns
-        col1, col2 = st.columns([1, 1.5])
-        
-        with col1:
-            st.subheader("🔬 Molecular Structure")
+
+        # ── TABS ──────────────────────────────────────────────────────────────
+        tab_admet, tab_sci = st.tabs(["🧬 ADMET Analysis", "🔬 Scientific Intelligence"])
+
+        with tab_admet:
+
+            # Layout: 2 columns
+            col1, col2 = st.columns([1, 1.5])
             
-            # Display 2D structure
-            img = molecule_to_image(smiles, size=(350, 350))
-            if img:
-                st.image(img, use_container_width=True)
+            with col1:
+                st.subheader("🔬 Molecular Structure")
+                
+                # Display 2D structure
+                img = molecule_to_image(smiles, size=(350, 350))
+                if img:
+                    st.image(img, use_container_width=True)
+                
+                # Display SMILES
+                st.code(smiles, language=None)
+                
+                # Lipinski violations
+                st.subheader("📋 Lipinski Rule of Five")
+                violations = admet_profile['lipinski_violations']
+                
+                if violations == 0:
+                    st.success("✅ No violations - Excellent oral bioavailability potential")
+                elif violations == 1:
+                    st.warning(f"⚠️ {violations} violation - Acceptable for some drug classes")
+                else:
+                    st.error(f"❌ {violations} violations - Poor drug-like properties")
             
-            # Display SMILES
-            st.code(smiles, language=None)
+            with col2:
+                st.subheader("📊 ADMET Profile Radar")
+                
+                # Radar chart
+                radar_fig = create_radar_chart(admet_profile, molecule_name if molecule_name else "Molecule")
+                st.plotly_chart(radar_fig, use_container_width=True)
             
-            # Lipinski violations
-            st.subheader("📋 Lipinski Rule of Five")
-            violations = admet_profile['lipinski_violations']
+            # Properties section
+            st.divider()
+            st.subheader("📈 Detailed ADMET Properties")
             
-            if violations == 0:
-                st.success("✅ No violations - Excellent oral bioavailability potential")
-            elif violations == 1:
-                st.warning(f"⚠️ {violations} violation - Acceptable for some drug classes")
-            else:
-                st.error(f"❌ {violations} violations - Poor drug-like properties")
-        
-        with col2:
-            st.subheader("📊 ADMET Profile Radar")
+            # 4 columns for metrics
+            metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
             
-            # Radar chart
-            radar_fig = create_radar_chart(admet_profile, molecule_name if molecule_name else "Molecule")
-            st.plotly_chart(radar_fig, use_container_width=True)
-        
-        # Properties section
-        st.divider()
-        st.subheader("📈 Detailed ADMET Properties")
-        
-        # 4 columns for metrics
-        metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
-        
-        with metric_col1:
-            st.metric(
-                label="Lipophilicity (LogP)",
-                value=f"{admet_profile['logp']}",
-                help="Optimal: 0-3 (Lipinski)"
+            with metric_col1:
+                st.metric(
+                    label="Lipophilicity (LogP)",
+                    value=f"{admet_profile['logp']}",
+                    help="Optimal: 0-3 (Lipinski)"
+                )
+                interpretation = interpret_logp(admet_profile['logp'])
+                if "✅" in interpretation:
+                    st.success(interpretation)
+                elif "⚠️" in interpretation:
+                    st.warning(interpretation)
+                else:
+                    st.error(interpretation)
+            
+            with metric_col2:
+                st.metric(
+                    label="Solubility (LogS)",
+                    value=f"{admet_profile['logs']}",
+                    help="Optimal: > -4"
+                )
+                interpretation = interpret_logs(admet_profile['logs'])
+                if "✅" in interpretation:
+                    st.success(interpretation)
+                elif "⚠️" in interpretation:
+                    st.warning(interpretation)
+                else:
+                    st.error(interpretation)
+            
+            with metric_col3:
+                st.metric(
+                    label="hERG Risk",
+                    value=f"{admet_profile['herg_risk']}",
+                    help="Cardiotoxicity probability (0-1, lower is better)"
+                )
+                interpretation = interpret_herg(admet_profile['herg_risk'])
+                if "✅" in interpretation:
+                    st.success(interpretation)
+                elif "⚠️" in interpretation:
+                    st.warning(interpretation)
+                else:
+                    st.error(interpretation)
+            
+            with metric_col4:
+                st.metric(
+                    label="Drug-likeness (QED)",
+                    value=f"{admet_profile['qed']}",
+                    help="Quantitative Estimate (0-1, higher is better)"
+                )
+                interpretation = interpret_qed(admet_profile['qed'])
+                if "✅" in interpretation:
+                    st.success(interpretation)
+                elif "⚠️" in interpretation:
+                    st.warning(interpretation)
+                else:
+                    st.error(interpretation)
+            
+            # Comparison section
+            st.divider()
+            st.subheader("🔄 Benchmark Comparison")
+            
+            comparison_molecule = st.selectbox(
+                "Compare with:",
+                ["None"] + load_demo_data()['name'].tolist(),
+                help="Select a reference molecule for comparison"
             )
-            interpretation = interpret_logp(admet_profile['logp'])
-            if "✅" in interpretation:
-                st.success(interpretation)
-            elif "⚠️" in interpretation:
-                st.warning(interpretation)
-            else:
-                st.error(interpretation)
-        
-        with metric_col2:
-            st.metric(
-                label="Solubility (LogS)",
-                value=f"{admet_profile['logs']}",
-                help="Optimal: > -4"
-            )
-            interpretation = interpret_logs(admet_profile['logs'])
-            if "✅" in interpretation:
-                st.success(interpretation)
-            elif "⚠️" in interpretation:
-                st.warning(interpretation)
-            else:
-                st.error(interpretation)
-        
-        with metric_col3:
-            st.metric(
-                label="hERG Risk",
-                value=f"{admet_profile['herg_risk']}",
-                help="Cardiotoxicity probability (0-1, lower is better)"
-            )
-            interpretation = interpret_herg(admet_profile['herg_risk'])
-            if "✅" in interpretation:
-                st.success(interpretation)
-            elif "⚠️" in interpretation:
-                st.warning(interpretation)
-            else:
-                st.error(interpretation)
-        
-        with metric_col4:
-            st.metric(
-                label="Drug-likeness (QED)",
-                value=f"{admet_profile['qed']}",
-                help="Quantitative Estimate (0-1, higher is better)"
-            )
-            interpretation = interpret_qed(admet_profile['qed'])
-            if "✅" in interpretation:
-                st.success(interpretation)
-            elif "⚠️" in interpretation:
-                st.warning(interpretation)
-            else:
-                st.error(interpretation)
-        
-        # Comparison section
-        st.divider()
-        st.subheader("🔄 Benchmark Comparison")
-        
-        comparison_molecule = st.selectbox(
-            "Compare with:",
-            ["None"] + load_demo_data()['name'].tolist(),
-            help="Select a reference molecule for comparison"
-        )
-        
-        if comparison_molecule != "None":
-            ref_smiles = load_demo_data()[load_demo_data()['name'] == comparison_molecule].iloc[0]['smiles']
-            ref_profile = calculate_admet_profile(ref_smiles)
             
-            comp_col1, comp_col2 = st.columns(2)
+            if comparison_molecule != "None":
+                ref_smiles = load_demo_data()[load_demo_data()['name'] == comparison_molecule].iloc[0]['smiles']
+                ref_profile = calculate_admet_profile(ref_smiles)
+                
+                comp_col1, comp_col2 = st.columns(2)
+                
+                with comp_col1:
+                    st.markdown(f"**{molecule_name if molecule_name else 'Your Molecule'}**")
+                    st.plotly_chart(create_radar_chart(admet_profile, "Your Molecule"), use_container_width=True)
+                
+                with comp_col2:
+                    st.markdown(f"**{comparison_molecule} (Reference)**")
+                    st.plotly_chart(create_radar_chart(ref_profile, comparison_molecule), use_container_width=True)
             
-            with comp_col1:
-                st.markdown(f"**{molecule_name if molecule_name else 'Your Molecule'}**")
-                st.plotly_chart(create_radar_chart(admet_profile, "Your Molecule"), use_container_width=True)
+            # Export section
+            st.divider()
             
-            with comp_col2:
-                st.markdown(f"**{comparison_molecule} (Reference)**")
-                st.plotly_chart(create_radar_chart(ref_profile, comparison_molecule), use_container_width=True)
-        
-        # Export section
-        st.divider()
-        
-        export_col1, export_col2 = st.columns([3, 1])
-        
-        with export_col1:
-            st.info("💡 **Next Steps:** Export this report for project documentation or integrate into your R&D pipeline.")
-        
-        with export_col2:
-            if st.button("📄 Generate PDF Report", type="primary"):
-                st.success("✅ PDF generation coming soon!")
-                st.balloons()
+            export_col1, export_col2 = st.columns([3, 1])
+            
+            with export_col1:
+                st.info("💡 **Next Steps:** Export this report for project documentation or integrate into your R&D pipeline.")
+            
+            with export_col2:
+                if st.button("📄 Generate PDF Report", type="primary"):
+                    st.success("✅ PDF generation coming soon!")
+                    st.balloons()
+
+        # ── SCIENTIFIC INTELLIGENCE TAB ────────────────────────────────────────
+        with tab_sci:
+            display_scientific_intelligence(
+                molecule_name if molecule_name else smiles,
+                st.secrets["ANTHROPIC_API_KEY"]
+            )
     
     else:
         # Landing page when no molecule selected
@@ -313,7 +327,7 @@ st.divider()
 st.markdown("""
     <div style='text-align: center; color: #666; padding: 1rem;'>
         <p><strong>ADMET Compass</strong> | Developed by Muriel | Biolevate R&D Innovation</p>
-        <p style='font-size: 0.8rem;'>Powered by RDKit • Streamlit • Python</p>
+        <p style='font-size: 0.8rem;'>Powered by RDKit • Streamlit • Python • Claude AI</p>
     </div>
     """, unsafe_allow_html=True)
 
