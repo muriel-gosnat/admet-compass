@@ -256,49 +256,49 @@ def generate_digest_with_claude(
         f"- {t['phase']} | {t['status']} | {t['conditions']} | Sponsor: {t['sponsor']}"
         for t in trials[:15]
     ])
-    patents_text = f"{len(patents)} brevets trouvés" if patents else "Données brevets non disponibles."
+    patents_text = f"{len(patents)} patents found" if patents else "Patent data unavailable."
 
-    prompt = f"""Tu es un expert en Drug Discovery et Strategic Intelligence pharmaceutique.
-Analyse les données suivantes sur la molécule **{molecule_name}** et génère un digest structuré.
+    prompt = f"""You are an expert in Drug Discovery and Pharmaceutical Strategic Intelligence.
+Analyze the following data on the molecule **{molecule_name}** and generate a structured digest.
 
-## Publications PubMed récentes ({len(articles)} trouvées)
-{articles_text if articles_text else "Aucune publication trouvée."}
+## Recent PubMed Publications ({len(articles)} found)
+{articles_text if articles_text else "No publications found."}
 
-## Essais Cliniques ClinicalTrials.gov ({len(trials)} trouvés)
-{trials_text if trials_text else "Aucun essai clinique trouvé."}
+## ClinicalTrials.gov Clinical Trials ({len(trials)} found)
+{trials_text if trials_text else "No clinical trials found."}
 
-## Brevets (EPO Espacenet)
+## Patents (EPO Espacenet)
 {patents_text}
 
-Retourne UNIQUEMENT un objet JSON valide avec cette structure exacte :
+Return ONLY a valid JSON object with this exact structure:
 {{
-  "tendances_recentes": "Synthèse en 4-5 phrases des axes de recherche dominants, nouvelles indications, signaux de toxicité.",
-  "stade_clinique": {{
-    "resume": "Synthèse narrative du paysage clinique en 2-3 phrases.",
+  "recent_trends": "4-5 sentence synthesis of dominant research directions, new indications, emerging toxicity signals.",
+  "clinical_stage": {{
+    "summary": "2-3 sentence narrative of the clinical landscape.",
     "phases": {{
       "Phase I": 0,
       "Phase II": 0,
       "Phase III": 0,
       "Phase IV": 0,
-      "Non précisé": 0
+      "Not specified": 0
     }},
-    "pathologies_principales": ["pathologie1", "pathologie2", "pathologie3"],
-    "sponsors_principaux": ["sponsor1", "sponsor2"]
+    "main_conditions": ["condition1", "condition2", "condition3"],
+    "main_sponsors": ["sponsor1", "sponsor2"]
   }},
-  "paysage_brevets": {{
-    "resume": "Synthèse narrative sur le statut IP en 2-3 phrases.",
-    "activite_recente": "Faible / Modérée / Élevée",
-    "statut_ip": "Sous brevet actif / Brevet expiré / Zone mixte / Inconnu"
+  "patent_landscape": {{
+    "summary": "2-3 sentence narrative on IP status.",
+    "recent_activity": "Low / Moderate / High",
+    "ip_status": "Active patent / Expired patent / Mixed / Unknown"
   }},
-  "gaps_opportunites": "3-4 phrases identifiant les angles peu explorés, les besoins non couverts, les opportunités stratégiques.",
-  "score_maturite": {{
+  "gaps_opportunities": "3-4 sentences identifying underexplored angles, unmet needs, and strategic opportunities.",
+  "maturity_score": {{
     "score": 3,
-    "justification": "Explication en 1-2 phrases du score sur 5."
+    "justification": "1-2 sentence explanation of the score out of 5."
   }}
 }}
 
-Le score_maturite doit être un entier entre 1 et 5 :
-1 = Très préliminaire, 2 = Exploratoire, 3 = En développement actif, 4 = Mature, 5 = Très mature/commercialisé.
+The maturity_score must be an integer between 1 and 5:
+1 = Very preliminary, 2 = Exploratory, 3 = Active development, 4 = Mature, 5 = Very mature/commercialized.
 """
 
     try:
@@ -334,97 +334,97 @@ def display_scientific_intelligence(molecule_input: str, api_key: str):
     """
 
     st.markdown("## 🔬 Scientific Intelligence")
-    st.caption(f"Analyse en temps réel pour : **{molecule_input}**")
+    st.caption(f"Real-time analysis for: **{molecule_input}**")
 
-    if st.button("🚀 Générer le digest scientifique", type="primary"):
+    if st.button("🚀 Generate Scientific Digest", type="primary"):
 
-        # Résolution du nom
-        with st.spinner("Identification de la molécule..."):
+        # Resolve molecule name
+        with st.spinner("Identifying molecule..."):
             molecule_name = resolve_molecule_name(molecule_input)
-            st.info(f"Molécule analysée : **{molecule_name}**")
+            st.info(f"Molecule analyzed: **{molecule_name}**")
 
-        # Collecte des données
+        # Data collection
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            with st.spinner("PubMed..."):
+            with st.spinner("Searching PubMed..."):
                 articles = fetch_pubmed(molecule_name)
-            st.metric("Publications trouvées", len(articles))
+            st.metric("Publications found", len(articles))
 
         with col2:
-            with st.spinner("ClinicalTrials.gov..."):
+            with st.spinner("Searching ClinicalTrials.gov..."):
                 trials = fetch_clinical_trials(molecule_name)
-            st.metric("Essais cliniques", len(trials))
+            st.metric("Clinical trials", len(trials))
 
         with col3:
-            with st.spinner("Brevets EPO..."):
+            with st.spinner("Searching EPO patents..."):
                 patents = fetch_patents(molecule_name)
-            st.metric("Brevets (EPO)", len(patents) if patents else "N/A")
+            st.metric("Patents (EPO)", len(patents) if patents else "N/A")
 
-        # Synthèse Claude
-        with st.spinner("Génération du digest par Claude..."):
+        # Claude synthesis
+        with st.spinner("Generating digest with Claude..."):
             digest = generate_digest_with_claude(molecule_name, articles, trials, patents, api_key)
 
         if "error" in digest:
-            st.error(f"Erreur lors de la synthèse : {digest['error']}")
+            st.error(f"Synthesis error: {digest['error']}")
             return
 
         st.divider()
 
-        # ── Score de maturité ──
-        score = digest.get("score_maturite", {})
+        # ── Maturity score ──
+        score = digest.get("maturity_score", {})
         score_val = score.get("score", 0)
-        score_labels = {1: "Très préliminaire", 2: "Exploratoire", 3: "En développement actif", 4: "Mature", 5: "Très mature"}
+        score_labels = {1: "Very preliminary", 2: "Exploratory", 3: "Active development", 4: "Mature", 5: "Very mature"}
         score_colors = {1: "🔴", 2: "🟠", 3: "🟡", 4: "🟢", 5: "🟢"}
 
-        st.markdown(f"### {score_colors.get(score_val, '⚪')} Score de maturité scientifique : {score_val}/5 — *{score_labels.get(score_val, '')}*")
+        st.markdown(f"### {score_colors.get(score_val, '⚪')} Scientific Maturity Score: {score_val}/5 — *{score_labels.get(score_val, '')}*")
         st.caption(score.get("justification", ""))
 
         st.divider()
 
-        # ── Tendances récentes ──
-        st.markdown("### 📈 Tendances récentes")
-        st.write(digest.get("tendances_recentes", "N/A"))
+        # ── Recent trends ──
+        st.markdown("### 📈 Recent Trends")
+        st.write(digest.get("recent_trends", "N/A"))
 
-        # ── Stade clinique ──
-        st.markdown("### 🏥 Stade clinique")
-        stade = digest.get("stade_clinique", {})
-        st.write(stade.get("resume", ""))
+        # ── Clinical stage ──
+        st.markdown("### 🏥 Clinical Stage")
+        clinical = digest.get("clinical_stage", {})
+        st.write(clinical.get("summary", ""))
 
-        phases = stade.get("phases", {})
+        phases = clinical.get("phases", {})
         if any(v > 0 for v in phases.values()):
             cols = st.columns(len(phases))
             for col, (phase, count) in zip(cols, phases.items()):
                 col.metric(phase, count)
 
-        if stade.get("pathologies_principales"):
-            st.markdown("**Pathologies principales :** " + " | ".join(stade["pathologies_principales"]))
-        if stade.get("sponsors_principaux"):
-            st.markdown("**Sponsors principaux :** " + " | ".join(stade["sponsors_principaux"]))
+        if clinical.get("main_conditions"):
+            st.markdown("**Main conditions:** " + " | ".join(clinical["main_conditions"]))
+        if clinical.get("main_sponsors"):
+            st.markdown("**Main sponsors:** " + " | ".join(clinical["main_sponsors"]))
 
-        # ── Paysage brevets ──
-        st.markdown("### 🔒 Paysage brevets")
-        brevets = digest.get("paysage_brevets", {})
-        st.write(brevets.get("resume", ""))
+        # ── Patent landscape ──
+        st.markdown("### 🔒 Patent Landscape")
+        patents_digest = digest.get("patent_landscape", {})
+        st.write(patents_digest.get("summary", ""))
         col_a, col_b = st.columns(2)
-        col_a.metric("Activité de dépôt", brevets.get("activite_recente", "N/A"))
-        col_b.metric("Statut IP", brevets.get("statut_ip", "N/A"))
+        col_a.metric("Filing activity", patents_digest.get("recent_activity", "N/A"))
+        col_b.metric("IP status", patents_digest.get("ip_status", "N/A"))
 
-        # ── Gaps & opportunités ──
-        st.markdown("### 💡 Gaps & Opportunités")
-        st.info(digest.get("gaps_opportunites", "N/A"))
+        # ── Gaps & opportunities ──
+        st.markdown("### 💡 Gaps & Opportunities")
+        st.info(digest.get("gaps_opportunities", "N/A"))
 
         # ── Sources ──
-        with st.expander("📚 Sources — Publications PubMed"):
+        with st.expander("📚 Sources — PubMed Publications"):
             for a in articles[:10]:
                 st.markdown(f"- [{a['title']} ({a['year']})]({a['url']})")
 
-        with st.expander("🏥 Sources — Essais cliniques"):
+        with st.expander("🏥 Sources — Clinical Trials"):
             for t in trials[:10]:
                 st.markdown(f"- [{t['title']}]({t['url']}) | {t['phase']} | {t['status']}")
 
         if patents:
-            with st.expander("🔒 Sources — Brevets EPO"):
+            with st.expander("🔒 Sources — EPO Patents"):
                 for p in patents[:10]:
                     st.markdown(f"- [{p['id']}]({p['url']})")
 
@@ -441,7 +441,7 @@ def display_scientific_intelligence(molecule_input: str, api_key: str):
             }
         }
         st.download_button(
-            label="⬇️ Exporter le digest (JSON)",
+            label="⬇️ Export digest (JSON)",
             data=json.dumps(export_data, ensure_ascii=False, indent=2),
             file_name=f"digest_{molecule_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.json",
             mime="application/json",
