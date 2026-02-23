@@ -142,7 +142,7 @@ def main():
             - Scientific Intelligence (PubMed, ClinicalTrials, Patents)
             
             **Developed by:** Muriel  
-            **Context:** Biolevate R&D Portfolio  
+            **Context:** Pharma R&D Portfolio  
             **Use Case:** Early-stage hit-to-lead optimization
             """)
     
@@ -326,7 +326,7 @@ def main():
 st.divider()
 st.markdown("""
     <div style='text-align: center; color: #666; padding: 1rem;'>
-        <p><strong>ADMET Compass</strong> | Developed by Muriel | Biolevate R&D Innovation</p>
+        <p><strong>ADMET Compass</strong> | Developed by Muriel</p>
         <p style='font-size: 0.8rem;'>Powered by RDKit • Streamlit • Python • Claude AI</p>
     </div>
     """, unsafe_allow_html=True)
